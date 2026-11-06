@@ -1,0 +1,97 @@
+# Image built from the repo Dockerfile. For a remote cluster, push it to your
+# registry and set image.repository. Tag defaults to the chart appVersion.
+image:
+  repository: container-demo
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Ignored while autoscaling.enabled is true (the HPA owns the replica count).
+replicaCount: 3
+
+containerPort: 3000
+
+# Extra environment variables for the web container.
+env: []
+#  - name: APP_VERSION
+#    value: "1.0.1"
+
+podAnnotations: {}
+podLabels: {}
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  periodSeconds: 5
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  periodSeconds: 10
+
+# The image runs as the non-root "node" user (uid 1000).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+service:
+  # LoadBalancer works out of the box on Docker Desktop / cloud clusters.
+  # Use ClusterIP when exposing through the ingress instead.
+  type: LoadBalancer
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: container-demo.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: container-demo-tls
+  #    hosts: [container-demo.local]
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 60
+  # targetMemoryUtilizationPercentage: 80
+
+# Keeps at least this many pods up during node drains and cluster upgrades.
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

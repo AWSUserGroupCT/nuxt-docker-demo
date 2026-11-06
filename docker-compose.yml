@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        APP_VERSION: "1.0.0"
+    image: container-demo:1.0.0
+    ports:
+      - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    restart: unless-stopped

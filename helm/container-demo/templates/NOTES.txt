@@ -1,0 +1,18 @@
+container-demo {{ .Values.image.tag | default .Chart.AppVersion }} is deploying as release "{{ .Release.Name }}".
+
+Watch pods come up{{ if .Values.autoscaling.enabled }} (HPA scales {{ .Values.autoscaling.minReplicas }}-{{ .Values.autoscaling.maxReplicas }} on CPU){{ end }}:
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }} -w
+
+Open the app:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}/infrastructure
+{{- end }}
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  kubectl get svc -n {{ .Release.Namespace }} {{ include "container-demo.fullname" . }}
+  # then browse to http://<EXTERNAL-IP>:{{ .Values.service.port }}/infrastructure
+  # (Docker Desktop: http://localhost:{{ .Values.service.port }}/infrastructure)
+{{- else }}
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "container-demo.fullname" . }} 8080:{{ .Values.service.port }}
+  # then browse to http://localhost:8080/infrastructure
+{{- end }}
