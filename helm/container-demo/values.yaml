@@ -9,7 +9,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-# Ignored while autoscaling.enabled is true (the HPA owns the replica count).
 replicaCount: 3
 
 containerPort: 3000
