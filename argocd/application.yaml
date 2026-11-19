@@ -24,8 +24,8 @@ spec:
       #     repository: ghcr.io/awsusergroupct/nuxt-docker-demo
       #     tag: "1.0.0"
   destination:
-    # The cluster Argo CD itself runs in.
-    server: https://kubernetes.default.svc
+    # Same EKS cluster as the fastapi-docker app.
+    server: https://281C165D7D77C31091F9C9D99982E67E.gr7.us-east-1.eks.amazonaws.com
     namespace: container-demo
   syncPolicy:
     automated:

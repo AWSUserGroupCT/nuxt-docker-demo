@@ -1,8 +1,8 @@
 # Image built from the repo Dockerfile. For a remote cluster, push it to your
 # registry and set image.repository. Tag defaults to the chart appVersion.
 image:
-  repository: container-demo
-  tag: ""
+  repository: dmevanct/nuxt-demo
+  tag: "v0.1"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -62,23 +62,33 @@ securityContext:
     drop: [ALL]
 
 service:
-  # LoadBalancer works out of the box on Docker Desktop / cloud clusters.
-  # Use ClusterIP when exposing through the ingress instead.
-  type: LoadBalancer
+  # ClusterIP: traffic enters through the shared ALB (ingress below).
+  type: ClusterIP
   port: 80
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
+  enabled: true
+  # Served by the AWS Load Balancer Controller. Every Ingress with the same
+  # group.name shares one ALB (same group as the API charts).
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/group.name: shared-api
+    # Catch-all "/" must be evaluated after the API path rules (order 10, 20, ...).
+    alb.ingress.kubernetes.io/group.order: "100"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /api/health
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:877969058937:certificate/619056d9-9897-4988-8bbe-b3e111dbb006
+    alb.ingress.kubernetes.io/tags: Environment=dev,Team=platform,Project=container-demo
   hosts:
-    - host: container-demo.local
+    - host: app.pres.labspres.com
       paths:
         - path: /
           pathType: Prefix
+  # TLS terminates at the ALB (certificate-arn above), so no tls block is needed.
   tls: []
-  #  - secretName: container-demo-tls
-  #    hosts: [container-demo.local]
 
 autoscaling:
   enabled: true
