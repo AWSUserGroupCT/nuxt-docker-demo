@@ -2,7 +2,7 @@
 # registry and set image.repository. Tag defaults to the chart appVersion.
 image:
   repository: dmevanct/nuxt-demo
-  tag: "v0.1"
+  tag: "v0.2x86"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
